@@ -146,7 +146,7 @@ namespace Fallout1 {
             Print("sizeof(Inventory): {}", sizeof(Inventory));
 
             Print("[Items in inventory not equipped]");
-            for (unsigned int i{}; i < itemCount; ++i) {
+            for (int i {}; i < itemCount; ++i) {
                 Print("inv.items[{}].count = {}", i, inv.items[i].count);
                 Print("inv.items[{}].item = 0x{:08x}", i, (uintptr_t)inv.items[i].item);
 
