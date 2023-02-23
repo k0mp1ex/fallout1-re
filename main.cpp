@@ -91,13 +91,13 @@ namespace Fallout1 {
     bool ResolveIntoVariable(uintptr_t baseAddress, std::vector<unsigned int> offsets, T* value) {
         uintptr_t address = RE::FindDMAAddy(_handle, baseAddress, offsets);
         if (address) {
-            ReadProcessMemory(_handle, (BYTE*)address, &(*value), sizeof(T), nullptr);
+            ReadProcessMemory(_handle, (BYTE*)address, value, sizeof(T), nullptr);
         }
         return address;
     }
     template <typename T>
     bool ResolveFromBaseModuleIntoVariable(uintptr_t baseAddress, std::vector<unsigned int> offsets, T* value) {
-        return ResolveIntoVariable(RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + baseAddress, offsets, &(*value));
+        return ResolveIntoVariable(RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + baseAddress, offsets, value);
     }
 
     struct Item {
