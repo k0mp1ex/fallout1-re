@@ -137,7 +137,7 @@ namespace Fallout1 {
     }
 
     void ShowItem(Item* item) {
-        //be aware, the item we have here is inside our own process memory and it was read from the game process usinng ReadProcessMemory
+        //be aware, the item we have here is inside our own process memory and it was read from the game process using ReadProcessMemory
         //it won't have the same address as the original inv.items[i].item!
         Print("item->ammo = {}", item->ammo);
         Print("item->prototypeID = {:08}", item->prototypeID); //it's still a decimal value, just formatting with zero padding
@@ -168,6 +168,7 @@ namespace Fallout1 {
                     //we will need to use ReadProcessMemory everytime we need to dereference a pointer
                     //IF we were inside the same process, we would have access to all its memory so we could just dereference the pointer and access all its values right away
                     Item item;
+                    //here we already have the "final" pointer, no need to add the base module address to it
                     if (ResolveIntoVariable(reinterpret_cast<uintptr_t>(inv.items[i].item), {}, &item)) {
                         ShowItem(&item);
                     }
