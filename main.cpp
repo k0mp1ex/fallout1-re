@@ -137,6 +137,8 @@ namespace Fallout1 {
     }
 
     void ShowItem(Item* item) {
+        //be aware, the item we have here is inside our own process memory and it was read from the game process usinng ReadProcessMemory
+        //it won't have the same address as the original inv.items[i].item!
         Print("item->ammo = {}", item->ammo);
         Print("item->prototypeID = {:08}", item->prototypeID); //it's still a decimal value, just formatting with zero padding
     }
