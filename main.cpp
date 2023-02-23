@@ -117,23 +117,21 @@ namespace Fallout1 {
     };
 
     void ShowPlayer() {
-        UsingProcess([&]() {
-            char playerName[12];  //falloutwHR.exe + 16BF1C
-            ResolveFromBaseModuleIntoVariable(0x16BF1C, {}, &playerName);
-            Print("Player name: {}", playerName);
+        char playerName[12];  //falloutwHR.exe + 16BF1C
+        ResolveFromBaseModuleIntoVariable(0x16BF1C, {}, &playerName);
+        Print("Player name: {}", playerName);
 
-            int playerAge;        //falloutwHR.exe + 1076C8
-            ResolveFromBaseModuleIntoVariable(0x1076C8, {}, &playerAge);
-            Print("Player age: {}", playerAge);
+        int playerAge;        //falloutwHR.exe + 1076C8
+        ResolveFromBaseModuleIntoVariable(0x1076C8, {}, &playerAge);
+        Print("Player age: {}", playerAge);
 
-            int playerHitPoints;  //falloutwHR.exe + 105708
-            ResolveFromBaseModuleIntoVariable(0x105708, {}, &playerHitPoints);
-            Print("Player hit points: {}", playerHitPoints);
+        int playerHitPoints;  //falloutwHR.exe + 105708
+        ResolveFromBaseModuleIntoVariable(0x105708, {}, &playerHitPoints);
+        Print("Player hit points: {}", playerHitPoints);
 
-            int playerCharacterPoints; //falloutwHR.exe + 10502C
-            ResolveFromBaseModuleIntoVariable(0x10502C, {}, &playerCharacterPoints);
-            Print("Player character points: {}", playerCharacterPoints);
-        });
+        int playerCharacterPoints; //falloutwHR.exe + 10502C
+        ResolveFromBaseModuleIntoVariable(0x10502C, {}, &playerCharacterPoints);
+        Print("Player character points: {}", playerCharacterPoints);
     }
 
     void ShowItem(Item* item) {
@@ -145,9 +143,7 @@ namespace Fallout1 {
 
     int GetNumberOfItemsInInventory() {
         int result {};
-        UsingProcess([&]() {
-            ResolveFromBaseModuleIntoVariable(0x19CE50, { 0x0 }, &result);
-        });
+        ResolveFromBaseModuleIntoVariable(0x19CE50, { 0x0 }, &result);
         return result;
     }
 
@@ -155,88 +151,96 @@ namespace Fallout1 {
         int itemCount = GetNumberOfItemsInInventory();
         Print("Item count in inventory: {}", itemCount);
 
-        UsingProcess([&]() {
-            Inventory inv; //falloutwHR.exe + 19CE50
-            if (ResolveFromBaseModuleIntoVariable(0x19CE50, { 0x8, 0x0 }, &inv)) {
-                Print("[Items in inventory not equipped]");
+        Inventory inv; //falloutwHR.exe + 19CE50
+        if (ResolveFromBaseModuleIntoVariable(0x19CE50, { 0x8, 0x0 }, &inv)) {
+            Print("[Items in inventory not equipped]");
 
-                for (int i {}; i < itemCount; ++i) {
-                    Print("inv.items[{}].count = {}", i, inv.items[i].count);
-                    Print("inv.items[{}].item = 0x{:08x}", i, reinterpret_cast<uintptr_t>(inv.items[i].item));
+            for (int i{}; i < itemCount; ++i) {
+                Print("inv.items[{}].count = {}", i, inv.items[i].count);
+                Print("inv.items[{}].item = 0x{:08x}", i, reinterpret_cast<uintptr_t>(inv.items[i].item));
 
-                    //inv.items[i].item is a pointer, we need ReadProcessMemory again to access the region it points to and store it in => Item item
-                    //we will need to use ReadProcessMemory everytime we need to dereference a pointer
-                    //IF we were inside the same process, we would have access to all its memory so we could just dereference the pointer and access all its values right away
-                    Item item;
-                    //here we already have the "final" pointer, no need to add the base module address to it
-                    if (ResolveIntoVariable(reinterpret_cast<uintptr_t>(inv.items[i].item), {}, &item)) {
-                        ShowItem(&item);
-                    }
-
-                    Print("--------------");
-                }
-
-                Print("[Items equipped in inventory]");
-
-                Print("[Slot 1]");
-
-                Item itemEquipped1;   //falloutwHR.exe + 19CF10
-                if (ResolveFromBaseModuleIntoVariable(0x19CF10, {0x0}, &itemEquipped1)) { //offset 0x0 just to dereference 0x19CF10 using ReadProcessMemory inside FindDMAAddy
-                    ShowItem(&itemEquipped1);
+                //inv.items[i].item is a pointer, we need ReadProcessMemory again to access the region it points to and store it in => Item item
+                //we will need to use ReadProcessMemory everytime we need to dereference a pointer
+                //IF we were inside the same process, we would have access to all its memory so we could just dereference the pointer and access all its values right away
+                Item item;
+                //here we already have the "final" pointer, no need to add the base module address to it
+                if (ResolveIntoVariable(reinterpret_cast<uintptr_t>(inv.items[i].item), {}, &item)) {
+                    ShowItem(&item);
                 }
 
                 Print("--------------");
-
-                Print("[Slot 2]");
-                Item itemEquipped2;   //falloutwHR.exe + 19CF1C
-                if (ResolveFromBaseModuleIntoVariable(0x19CF1C, { 0x0 }, &itemEquipped2)) { //offset 0x0 just to dereference 0x19CF1C using ReadProcessMemory inside FindDMAAddy
-                    ShowItem(&itemEquipped2);
-                }
             }
-        });
+
+            Print("[Items equipped in inventory]");
+
+            Print("[Slot 1]");
+
+            Item itemEquipped1;   //falloutwHR.exe + 19CF10
+            if (ResolveFromBaseModuleIntoVariable(0x19CF10, { 0x0 }, &itemEquipped1)) { //offset 0x0 just to dereference 0x19CF10 using ReadProcessMemory inside FindDMAAddy
+                ShowItem(&itemEquipped1);
+            }
+
+            Print("--------------");
+
+            Print("[Slot 2]");
+            Item itemEquipped2;   //falloutwHR.exe + 19CF1C
+            if (ResolveFromBaseModuleIntoVariable(0x19CF1C, { 0x0 }, &itemEquipped2)) { //offset 0x0 just to dereference 0x19CF1C using ReadProcessMemory inside FindDMAAddy
+                ShowItem(&itemEquipped2);
+            }
+        }
     }
 
     void PatchInfiniteHitPoints() {
-        Print("-----------------");
-        Print("[Patch - Infinite Hit Points]");
-        Print("Presser <INSERT> to toggle ON/OFF");
-        Print("Presser <END> to quit");
+        static bool hookedHitPoints {};
+        hookedHitPoints = !hookedHitPoints;
+        Print("Infinite Hit Points State: {}", hookedHitPoints ? "ON" : "OFF");
 
+        BYTE* instructionAddress = (BYTE*)RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + 0x27D29;
+        if (hookedHitPoints) {
+            RE::NopEx(instructionAddress, 3, _handle);
+        }
+        else {
+            RE::PatchEx(instructionAddress, (BYTE*)"\x89\x53\x2C", 3, _handle);
+        }
+    }
+
+    void Welcome() {
+        Print("====================");
+        Print("[Let's RE Fallout!]");
+        Print("Press <INSERT> to toggle 'Infinite Hit Points' ON/OFF");
+        Print("Press <HOME> to show player's inventory and general info");
+        Print("Press <END> to quit");
+        Print("====================");
+    }
+
+    void MainLoop() {
         UsingProcess([&]() {
             DWORD dwExit = 0;
-            bool hookedHitPoints {};
 
             while (GetExitCodeProcess(_handle, &dwExit) && dwExit == STILL_ACTIVE) {
                 if (GetAsyncKeyState(VK_END) & 1) {
                     return;
                 }
 
-                if (GetAsyncKeyState(VK_INSERT) & 1) {
-                    hookedHitPoints = !hookedHitPoints;
-                    Print("Infinite Hit Points State: {}", hookedHitPoints ? "ON" : "OFF");
+                if (GetAsyncKeyState(VK_HOME) & 1) {
+                    ShowPlayer();
+                    ShowInventory(); //we need to open inventory first
+                    Print("-----------------");
                 }
 
-                /*
-                    [Original code]
-                    falloutwHR.exe+27D29 - 89 53 2C              - mov [ebx+2C],edx
-                */
-                BYTE* instructionAddress = (BYTE*)RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + 0x27D29;
-                if (hookedHitPoints) {
-                    RE::NopEx(instructionAddress, 3, _handle);
-                }
-                else {
-                    RE::PatchEx(instructionAddress, (BYTE*)"\x89\x53\x2C", 3, _handle);
+                if (GetAsyncKeyState(VK_INSERT) & 1) {
+                    PatchInfiniteHitPoints();
                 }
 
                 Sleep(10);
             }
         });
     }
+
 }
 
 int main() {
-    Fallout1::ShowPlayer();
-    Fallout1::ShowInventory(); //we need to open inventory first
-    Fallout1::PatchInfiniteHitPoints();
+    Fallout1::Welcome();
+    Fallout1::MainLoop();
     return 0;
 }
