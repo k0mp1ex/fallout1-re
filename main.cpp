@@ -13,8 +13,6 @@ void Print(const std::string_view text, Args&&... args) {
     std::cout << std::vformat(text, std::make_format_args(args...)) << std::endl;
 }
 
-constexpr auto PROCESS_NAME = L"falloutwHR.exe";
-
 namespace RE {
     DWORD GetProcId(const wchar_t* procName) {
         DWORD  procId = 0;
@@ -81,6 +79,7 @@ namespace RE {
 }
 
 namespace Fallout1 {
+    constexpr auto PROCESS_NAME = L"falloutwHR.exe";
     HANDLE    _handle = nullptr;
     DWORD     GetProcID() { return RE::GetProcId(PROCESS_NAME); }
     void      UsingProcess(std::function<void()> func) {
@@ -197,18 +196,21 @@ namespace Fallout1 {
     void PatchInfiniteHitPoints() {
         Print("-----------------");
         Print("[Patch - Infinite Hit Points]");
+        Print("Presser <INSERT> to toggle ON/OFF");
+        Print("Presser <END> to quit");
 
         UsingProcess([&]() {
             DWORD dwExit = 0;
             bool hookedHitPoints {};
 
             while (GetExitCodeProcess(_handle, &dwExit) && dwExit == STILL_ACTIVE) {
-                if (GetAsyncKeyState(VK_INSERT) & 1) {
-                    hookedHitPoints = !hookedHitPoints;
-                }
-                
                 if (GetAsyncKeyState(VK_END) & 1) {
                     return;
+                }
+
+                if (GetAsyncKeyState(VK_INSERT) & 1) {
+                    hookedHitPoints = !hookedHitPoints;
+                    Print("Infinite Hit Points State: {}", hookedHitPoints ? "ON" : "OFF");
                 }
 
                 /*
@@ -217,11 +219,9 @@ namespace Fallout1 {
                 */
                 BYTE* instructionAddress = (BYTE*)RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + 0x27D29;
                 if (hookedHitPoints) {
-                    Print("Patching...");
                     RE::NopEx(instructionAddress, 3, _handle);
                 }
                 else {
-                    Print("Unpatching...");
                     RE::PatchEx(instructionAddress, (BYTE*)"\x89\x53\x2C", 3, _handle);
                 }
 
@@ -233,7 +233,7 @@ namespace Fallout1 {
 
 int main() {
     Fallout1::ShowPlayer();
-    Fallout1::ShowInventory();
+    Fallout1::ShowInventory(); //we need to open inventory first
     Fallout1::PatchInfiniteHitPoints();
     return 0;
 }
