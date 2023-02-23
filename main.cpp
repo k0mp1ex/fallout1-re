@@ -195,12 +195,16 @@ namespace Fallout1 {
         hookedHitPoints = !hookedHitPoints;
         Print("Infinite Hit Points State: {}", hookedHitPoints ? "ON" : "OFF");
 
+        /*
+            [Original code]
+            falloutwHR.exe+27D29 - 89 53 2C              - mov [ebx+2C],edx
+        */
         BYTE* instructionAddress = (BYTE*)RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + 0x27D29;
         if (hookedHitPoints) {
-            RE::NopEx(instructionAddress, 3, _handle);
+            RE::NopEx(instructionAddress, 3, _handle); //3 = number of bytes being overwritten => 89 53 2C
         }
         else {
-            RE::PatchEx(instructionAddress, (BYTE*)"\x89\x53\x2C", 3, _handle);
+            RE::PatchEx(instructionAddress, (BYTE*)"\x89\x53\x2C", 3, _handle); //restore instruction 89 53 2C => mov [ebx+2C],edx
         }
     }
 
