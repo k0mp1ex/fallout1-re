@@ -202,8 +202,6 @@ namespace Fallout1 {
             DWORD dwExit = 0;
             bool hookedHitPoints {};
 
-            uintptr_t playerHitPointsAddress = RE::FindDMAAddy(_handle, RE::GetModuleBaseAddress(GetProcID(), PROCESS_NAME) + 0x105708, {}); //falloutwHR.exe + 105708
-
             while (GetExitCodeProcess(_handle, &dwExit) && dwExit == STILL_ACTIVE) {
                 if (GetAsyncKeyState(VK_INSERT) & 1) {
                     hookedHitPoints = !hookedHitPoints;
