@@ -8,6 +8,11 @@
 #include <string_view>
 #include <vector>
 
+#define STR_MERGE_IMPL(a, b) a##b
+#define STR_MERGE(a, b) STR_MERGE_IMPL(a, b)
+#define MAKE_PAD(size) STR_MERGE(_pad, __COUNTER__)[size]
+#define DEFINE_MEMBER_N(type, name, offset) struct {unsigned char MAKE_PAD(offset); type name;}
+
 template <class... Args>
 void Print(const std::string_view text, Args&&... args) {
     std::cout << std::vformat(text, std::make_format_args(args...)) << std::endl;
@@ -101,10 +106,12 @@ namespace Fallout1 {
     }
 
     struct Item {
-        char _unk1[0x3C];                      //0x00 => padding to skip unknown data and match alignment (0x3C from beginning of struct)
-        int ammo;                              //0x3C
-        char _unk2[0x64 - sizeof(int) - 0x3C]; //0x40 => padding to skip unknown data and match alignment (0x64 from beginning of struct, 0x64 - sizeof(int ammo) - 0x3C from beginning of struct)
-        int prototypeID;                       //0x64
+        union
+        {
+            //              Type Name         Offset
+            DEFINE_MEMBER_N(int, ammo,        0x3C);
+            DEFINE_MEMBER_N(int, prototypeID, 0x64);
+        };
     };
 
     struct InventoryItem {
