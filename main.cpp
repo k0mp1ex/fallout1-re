@@ -116,7 +116,7 @@ namespace Fallout1 {
 
     struct InventoryItem {
         Item* item; //4 byte size pointer (important to build as 32-bit). As a pointer we'll need to use ReadProcessMemory later to read the value it points to
-        int count;  //4 byte size int (0x8 from beginning of struct)
+        int count;  //4 byte size int (0x4 from beginning of struct)
     };
 
     struct Inventory {
